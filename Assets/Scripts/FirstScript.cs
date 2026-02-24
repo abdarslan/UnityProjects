@@ -20,7 +20,6 @@ public class FirstScript : MonoBehaviour
             rb.AddForce(0, 0, 13);
         }else
         {
-
             rb.AddForce(0, 10, 0);
         }
     }
