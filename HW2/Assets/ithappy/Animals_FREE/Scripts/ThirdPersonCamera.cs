@@ -3,25 +3,45 @@ using UnityEngine;
 public class SimpleFollowCamera : MonoBehaviour
 {
     [Header("Target Settings")]
-    public Transform target; // Drag your Cat here
+    public Transform target;
 
-    [Header("Camera Positioning")]
-    public Vector3 offset = new Vector3(0f, 2.5f, -4f); // X, Y (Height), Z (Distance back)
-    public float smoothSpeed = 5f; // How quickly it catches up
+    [Header("Orbit")]
+    public float distance = 4f;
+    public float height = 2f;
+    public float mouseSensitivity = 180f;
+    public float minPitch = -20f;
+    public float maxPitch = 60f;
+    public float smoothSpeed = 10f;
 
-    void LateUpdate()
+    private float yaw;
+    private float pitch = 15f;
+
+    private void Start()
     {
-        // Don't do anything if we haven't assigned the cat yet
-        if (target == null) return;
+        var euler = transform.eulerAngles;
+        yaw = euler.y;
+        pitch = Mathf.Clamp(euler.x, minPitch, maxPitch);
+    }
 
-        // 1. Calculate where the camera SHOULD be
-        // THE FIX: Multiplying by target.rotation forces the offset to turn WITH the cat
-        Vector3 desiredPosition = target.position + (target.rotation * offset);
+    private void LateUpdate()
+    {
+        if (target == null)
+        {
+            return;
+        }
 
-        // 2. Smoothly glide the camera to that position
+        var mouseX = Input.GetAxis("Mouse X");
+        var mouseY = Input.GetAxis("Mouse Y");
+
+        yaw += mouseX * mouseSensitivity * Time.deltaTime;
+        pitch -= mouseY * mouseSensitivity * Time.deltaTime;
+        pitch = Mathf.Clamp(pitch, minPitch, maxPitch);
+
+        var rotation = Quaternion.Euler(pitch, yaw, 0f);
+        var lookPoint = target.position + Vector3.up * height;
+        var desiredPosition = lookPoint - rotation * Vector3.forward * distance;
+
         transform.position = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed * Time.deltaTime);
-
-        // 3. Make sure the camera is always looking at the cat (slightly above its feet)
-        transform.LookAt(target.position + Vector3.up * 1f); 
+        transform.rotation = Quaternion.Lerp(transform.rotation, rotation, smoothSpeed * Time.deltaTime);
     }
 }
