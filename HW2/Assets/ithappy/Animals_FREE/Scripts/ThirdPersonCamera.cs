@@ -1,65 +1,27 @@
 using UnityEngine;
 
-namespace Controller
+public class SimpleFollowCamera : MonoBehaviour
 {
-    public class ThirdPersonCamera : PlayerCamera
+    [Header("Target Settings")]
+    public Transform target; // Drag your Cat here
+
+    [Header("Camera Positioning")]
+    public Vector3 offset = new Vector3(0f, 2.5f, -4f); // X, Y (Height), Z (Distance back)
+    public float smoothSpeed = 5f; // How quickly it catches up
+
+    void LateUpdate()
     {
-        [SerializeField, Range(0f, 2f)]
-        private float m_Offset = 1.5f;
-        [SerializeField, Range(0f, 360f)]
-        private float m_CameraSpeed = 90f;
+        // Don't do anything if we haven't assigned the cat yet
+        if (target == null) return;
 
-        private Vector3 m_LookPoint;
-        private Vector3 m_TargetPos;
+        // 1. Calculate where the camera SHOULD be
+        // THE FIX: Multiplying by target.rotation forces the offset to turn WITH the cat
+        Vector3 desiredPosition = target.position + (target.rotation * offset);
 
-        private void LateUpdate()
-        {
-            Move(Time.deltaTime);
-        }
+        // 2. Smoothly glide the camera to that position
+        transform.position = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed * Time.deltaTime);
 
-        public override void SetInput(in Vector2 delta, float scroll)
-        {
-            base.SetInput(delta, scroll);
-
-            var dir = new Vector3(0, 0, -m_Distance);
-            var rot = Quaternion.Euler(m_Angles.x, m_Angles.y, 0f);
-
-            var playerPos = (m_Player == null) ? Vector3.zero : m_Player.position;
-            m_LookPoint = playerPos + m_Offset * Vector3.up;
-            m_TargetPos = m_LookPoint + rot * dir;
-        }
-
-        private void Move(float deltaTime)
-        {
-            camera();
-            target();
-
-            void camera()
-            {
-                var direction = m_TargetPos - m_Transform.position;
-                var delta = m_CameraSpeed * deltaTime;
-
-                if(delta * delta > direction.sqrMagnitude)
-                {
-                    m_Transform.position = m_TargetPos;
-                }
-                else
-                {
-                    m_Transform.position += delta * direction.normalized;
-                }
-
-                m_Transform.LookAt(m_LookPoint);
-            }
-
-            void target()
-            {
-                if(m_Target == null)
-                {
-                    return;
-                }
-
-                m_Target.position = m_Transform.position + m_Transform.forward * TargetDistance;
-            }
-        }
+        // 3. Make sure the camera is always looking at the cat (slightly above its feet)
+        transform.LookAt(target.position + Vector3.up * 1f); 
     }
 }
