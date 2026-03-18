@@ -13,6 +13,7 @@ public class KeyMagnet : MonoBehaviour
     private Transform player;
     private Vector3 lastPlayerPos;
     private bool isCarrying = false;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -34,7 +35,7 @@ public class KeyMagnet : MonoBehaviour
     {
         if (player == null || rb == null) return;
 
-        if (Input.GetKeyDown(KeyCode.E))
+        if (Input.GetKeyDown(KeyCode.E) && Vector3.Distance(transform.position, player.position) < 2f)
         {
             if (!isCarrying) {
                 isCarrying = true;

@@ -8,9 +8,9 @@ public class DoorOpen : MonoBehaviour
 
     private void OnTriggerEnter(Collider other) 
     {
-        if (other.gameObject.tag == "Key" && !isOpening) 
+        if (other.CompareTag("Key") && !isOpening) 
         {
-            isOpening = true; // Prevent multiple coroutines running at once
+            isOpening = true; 
             StartCoroutine(openDoor());
         }
     }
@@ -18,20 +18,19 @@ public class DoorOpen : MonoBehaviour
     IEnumerator openDoor() 
     {
         Vector3 startPos = transform.position;
-        // Move the door straight up by 3 units
-        Vector3 endPos = startPos + new Vector3(0, 3f, 0); 
-        float duration = 1.5f; // Takes 1.5 seconds to fully open
+        // Move the door straight left by 3 units
+        Vector3 endPos = startPos + new Vector3(0, 0, -3f); 
+        float duration = 1.5f;
         float elapsed = 0f;
 
         while (elapsed < duration)
         {
-            // Smoothly move the door upwards frame-by-frame
+            // Smoothly move the door leftwards frame-by-frame
             transform.position = Vector3.Lerp(startPos, endPos, elapsed / duration);
             elapsed += Time.deltaTime;
             yield return null; // Wait for the next frame
         }
-        
-        // Ensure it ends perfectly at the final position
+
         transform.position = endPos;
     }
 }

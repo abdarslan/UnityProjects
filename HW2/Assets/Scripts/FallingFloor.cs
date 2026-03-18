@@ -34,7 +34,6 @@ public class FallingFloor : MonoBehaviour
             yield return new WaitForSeconds(timeToReset);
             
             rb.isKinematic = true;
-            rb.velocity = Vector3.zero;        // Stop leftover downward momentum
             
             transform.position = originalPos;
             transform.rotation = originalRot;
