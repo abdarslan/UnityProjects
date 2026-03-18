@@ -12,6 +12,7 @@ public class DoorOpen : MonoBehaviour
         {
             isOpening = true; 
             StartCoroutine(openDoor());
+            GameObject.Find("GameManager").GetComponent<GameManager>().win();
         }
     }
 

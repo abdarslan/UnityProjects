@@ -21,28 +21,40 @@ public class GameManager : MonoBehaviour
 
         statusText.text = "Find the key, Gather with E, find the door, and escape!";
         statusText.color = Color.green;
-        guards[0] = GameObject.Find("DogGuard-1").transform;
-        guards[1] = GameObject.Find("DogGuard-2").transform;
     }
 
     // Update is called once per frame
     void Update()
     {
 
-        if (isDead) {
+        if (isDead) { 
             if (Input.GetKeyDown(KeyCode.R)) {
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                player.GetComponent<CharacterController>().enabled = true; // enable controls on restart
             }
         }
-        //any movement clears the text
-        if (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0) {
+        
+        //any movement clears the text if the game hasn't ended
+        if (!isDead && (Input.GetAxis("Horizontal") != 0 || Input.GetAxis("Vertical") != 0)) {
             statusText.text = "";
         }
-        if (player.position.y < startingHeight - fallThreshold) {
-            isDead = true;
-            statusText.text = "You died! Press R to restart.";
-            statusText.color = Color.red; // Red
+        
+        // Don't fall to death if already dead/won
+        if (!isDead && player.position.y < startingHeight - fallThreshold) {
+            gameOver();
         }
 
+    }
+    public void gameOver() {
+        isDead = true;
+        statusText.text = "You died! Press R to restart.";
+        statusText.color = Color.red; 
+        player.GetComponent<CharacterController>().enabled = false; //disable controls on death
+    }
+    public void win() {
+        isDead = true; // 
+        statusText.text = "You win! Press R to restart.";
+        statusText.color = Color.green;
+        player.GetComponent<CharacterController>().enabled = false; //disable controls on win
     }
 }
