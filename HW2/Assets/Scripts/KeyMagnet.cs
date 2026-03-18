@@ -2,60 +2,78 @@ using UnityEngine;
 
 public class KeyMagnet : MonoBehaviour
 {
-    [Header("Magnet Settings")]
-    public float magnetRange = 5f;
-    public float followSpeed = 10f;
+   
+    public float pushRadius = 0.8f;      
+    public float pushForceMultiplier = 1.3f;
     
-    // Where should the key hover? (X, Y height, Z forward/back)
-    // Default is 1.5 units above and 1 unit behind the player
-    public Vector3 carryOffset = new Vector3(0f, 1.5f, -1f); 
-    
-    private Transform player;
+   
+    public Vector3 carryOffset = new Vector3(0f, 1f, 1f); 
+    public float carrySpeed = 10f;       
     private Rigidbody rb;
-    private Collider keyCollider;
-    private bool isCollected = false;
-
+    private Transform player;
+    private Vector3 lastPlayerPos;
+    private bool isCarrying = false;
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        keyCollider = GetComponent<Collider>();
-        
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.drag = 2f; 
+        }
+
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-        if (playerObj != null)
+        if (playerObj != null) 
         {
             player = playerObj.transform;
+            lastPlayerPos = player.position;
         }
     }
 
-    void Update() 
+    void Update()
     {
-        if (player == null) return;
+        if (player == null || rb == null) return;
 
-        // STATE 1: Waiting to be picked up
-        if (!isCollected)
+        if (Input.GetKeyDown(KeyCode.E))
         {
-            float distance = Vector3.Distance(transform.position, player.position);
+            if (!isCarrying) {
+                isCarrying = true;
+                rb.isKinematic = true;
 
-            if (distance < magnetRange)
-            {
-                isCollected = true;
-                
-                // Turn off physics so it doesn't push or crash the game
-                if (rb != null) rb.isKinematic = true;
-                if (keyCollider != null) keyCollider.isTrigger = true;
+            } else {
+                isCarrying = false;
+                rb.isKinematic = false;
             }
         }
-        // STATE 2: Carried by the player
-        else
-        {
-            // 1. Calculate the exact hover spot, turning WITH the player
+
+        if (isCarrying) {
             Vector3 targetPosition = player.position + (player.rotation * carryOffset);
             
-            // 2. Smoothly glide the key to that hover spot
-            transform.position = Vector3.Lerp(transform.position, targetPosition, followSpeed * Time.deltaTime);
+            transform.position = Vector3.Lerp(transform.position, targetPosition, carrySpeed * Time.deltaTime);
+            transform.rotation = Quaternion.Lerp(transform.rotation, player.rotation, carrySpeed * Time.deltaTime);
+            lastPlayerPos = player.position; 
+            return;
+        }
+        Vector3 playerVelocity = (player.position - lastPlayerPos) / Time.deltaTime;
+        lastPlayerPos = player.position;
+
+        float distance = Vector3.Distance(transform.position, player.position);
+        
+        // 
+        if (distance < pushRadius)
+        {
+            Vector3 pushDir = transform.position - player.position;
+            pushDir.y = 0;
+            pushDir.Normalize();
+
+            float pushSpeed = Vector3.Dot(playerVelocity, pushDir);
             
-            // 3. (Optional) Make the key face the same direction as the player
-            transform.rotation = Quaternion.Lerp(transform.rotation, player.rotation, followSpeed * Time.deltaTime);
+            // If the player is actively moving towards the key
+            if (pushSpeed > 0)
+            {
+                Vector3 targetVelocity = pushDir * (pushSpeed * pushForceMultiplier);
+                rb.velocity = new Vector3(targetVelocity.x, rb.velocity.y, targetVelocity.z);
+            }
         }
     }
 }
