@@ -11,8 +11,8 @@ public class EngineAudioController : MonoBehaviour
 
     [Header("Engine & Gear Settings")]
     public Rigidbody carRigidbody;
-    public float maxSpeed = 50f; // Top speed of the car in m/s
-    public int totalGears = 5;
+    public float maxSpeed = 30f; // Top speed of the car in m/s
+    public int totalGears = 1;
 
     void Update()
     {

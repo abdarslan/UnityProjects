@@ -1637,11 +1637,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   engineAudioSource: {fileID: 1775892578}
-  minPitch: 1.5
-  maxPitch: 2
+  minPitch: 1
+  maxPitch: 1.8
   carRigidbody: {fileID: 1602889650}
-  maxSpeed: 50
-  totalGears: 2
+  maxSpeed: 30
+  totalGears: 1
 --- !u!82 &1775892578
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1652,9 +1652,9 @@ AudioSource:
   m_Enabled: 1
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 3b93eca095bf8344ead59c64edcf8f2a, type: 3}
+  m_audioClip: {fileID: 8300000, guid: e9643d8581d235f45a62997cba851988, type: 3}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.408
   m_Pitch: 1
   Loop: 1
   Mute: 0
