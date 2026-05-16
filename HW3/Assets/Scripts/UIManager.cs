@@ -11,7 +11,7 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI TotalScoreText;
     public TextMeshProUGUI ActiveDriftText;
     public TextMeshProUGUI MultiplierText;
-    public Image StreakTimerBar;
+    public TextMeshProUGUI StreakTimerText;
     public Image batteryBar;
     public bool isDrifting = false;
     ScoreManager scoreManager;
@@ -21,6 +21,7 @@ public class UIManager : MonoBehaviour
         TotalScoreText.text = "Score: 0";
         ActiveDriftText.text = "";
         MultiplierText.text = "";
+        StreakTimerText.text = "";
         scoreManager = FindObjectOfType<ScoreManager>();
     }
 
@@ -31,11 +32,14 @@ public class UIManager : MonoBehaviour
         {
             ActiveDriftText.text = $"Drift: {Mathf.RoundToInt(scoreManager.scoreChunk)}";
             MultiplierText.text = $"x{scoreManager.streak}";
-        } else if (!isDrifting && scoreManager.scoreChunk == 0)
+        } else if (scoreManager.scoreChunk == 0)
         {
             ActiveDriftText.text = "";
             MultiplierText.text = "";
             TotalScoreText.text = $"Score: {scoreManager.score}";
+            StreakTimerText.text = "";
+        } else {
+            StreakTimerText.text = $"{scoreManager.streakTimer:F1}s";
         }
     }
     private void OnEnable() {
@@ -46,6 +50,7 @@ public class UIManager : MonoBehaviour
     private void HandlePlayerDriftStart()
     {
         isDrifting = true;
+        StreakTimerText.text = "";
     }
     private void HandlePlayerDriftEnd()
     {
