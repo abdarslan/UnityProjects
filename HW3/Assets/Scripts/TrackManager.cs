@@ -17,7 +17,8 @@ public class TrackManager : MonoBehaviour
 
     // Pool bins keyed by prefab type
     private Dictionary<TrackChunk, Queue<TrackChunk>> poolDictionary = new Dictionary<TrackChunk, Queue<TrackChunk>>();
-
+    
+    public Transform mainPlane;
     void Start()
     {
         // Setup pool bins
@@ -25,35 +26,30 @@ public class TrackManager : MonoBehaviour
         {
             if (!poolDictionary.ContainsKey(prefab))
                 poolDictionary.Add(prefab, new Queue<TrackChunk>());
+            SeedPool(prefab, 1);
         }
         if (!poolDictionary.ContainsKey(startChunk))
             poolDictionary.Add(startChunk, new Queue<TrackChunk>());
 
-        // Spawn start chunk — entryPoint aligns to world origin so car at (0,1,0) lands on it
         TrackChunk firstChunk = GetFromPool(startChunk, Vector3.zero, Quaternion.identity);
         activeChunks.Add(firstChunk);
         lastExitPoint = firstChunk.exitPoint;
-
-        Debug.Log($"Start: randomChunks count = {randomChunks.Length}, startChunk = {startChunk}, firstChunk entryPoint = {firstChunk.entryPoint}, firstChunk exitPoint = {firstChunk.exitPoint}");
-
         // Fill remaining slots
         for (int i = 1; i < concurrentChunks; i++)
         {
-            Debug.Log($"Spawning chunk {i}...");
             SpawnNextChunk();
-            Debug.Log($"Spawned chunk {i}, activeChunks count = {activeChunks.Count}");
         }
     }
 
     void Update()
     {
-        if (activeChunks.Count < 2) return;
+        if (activeChunks.Count < concurrentChunks) return;
 
         // Recycle oldest chunk when car has passed the second-to-last chunk's exit.
         // This keeps the chunk the car just left alive until it exits the next one.
         TrackChunk triggerChunk = activeChunks[activeChunks.Count - 2];
-        Vector3 exitToPlayer = player.position - triggerChunk.exitPoint.position;
-        float dot = Vector3.Dot(exitToPlayer, triggerChunk.exitPoint.forward);
+        Vector3 exitToPlayer = player.position - triggerChunk.middlePoint.position;
+        float dot = Vector3.Dot(exitToPlayer, triggerChunk.middlePoint.forward);
 
         if (dot >= 0f)
         {
@@ -65,10 +61,11 @@ public class TrackManager : MonoBehaviour
     private void SpawnNextChunk()
     {
         int randomIndex = Random.Range(0, randomChunks.Length);
-        TrackChunk prefabToSpawn = randomChunks[randomIndex];
-        TrackChunk newChunk = GetFromPool(prefabToSpawn, lastExitPoint.position, lastExitPoint.rotation);
+        TrackChunk prefab = randomChunks[randomIndex];
+        TrackChunk newChunk = GetFromPool(prefab, lastExitPoint.position, lastExitPoint.rotation);
         activeChunks.Add(newChunk);
         lastExitPoint = newChunk.exitPoint;
+        mainPlane.position = lastExitPoint.position - mainPlane.up * 0.5f;
     }
 
     private void RecycleOldestChunk()
@@ -82,18 +79,24 @@ public class TrackManager : MonoBehaviour
     //              POOLING LOGIC
     // ==========================================
 
-    private TrackChunk GetFromPool(TrackChunk prefabType, Vector3 targetEntryPosition, Quaternion spawnRotation)
+    private TrackChunk GetFromPool( TrackChunk prefab, Vector3 targetEntryPosition, Quaternion spawnRotation)
     {
         TrackChunk chunk;
+        // debug log the current count of each chunk type in the pool for debugging purposes
 
-        if (poolDictionary[prefabType].Count > 0)
+        if (poolDictionary[prefab].Count > 0)
         {
-            chunk = poolDictionary[prefabType].Dequeue();
+            chunk = poolDictionary[prefab].Dequeue();
         }
         else
         {
-            chunk = Instantiate(prefabType);
-            chunk.originalPrefab = prefabType;
+            // if there is no chunk with that type left get another one randomly from the pool
+            int fallbackIndex = Random.Range(0, randomChunks.Length);
+            while (poolDictionary[randomChunks[fallbackIndex]].Count == 0)
+            {
+                fallbackIndex = Random.Range(0, randomChunks.Length);
+            }
+            chunk = poolDictionary[randomChunks[fallbackIndex]].Dequeue();
         }
 
         // Position chunk so its entryPoint lands exactly at targetEntryPosition.
@@ -106,7 +109,16 @@ public class TrackManager : MonoBehaviour
 
         return chunk;
     }
-
+    private void SeedPool(TrackChunk prefab, int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            TrackChunk chunk = Instantiate(prefab);
+            chunk.originalPrefab = prefab;
+            chunk.gameObject.SetActive(false);
+            poolDictionary[prefab].Enqueue(chunk);
+        }
+    }
     private void ReturnToPool(TrackChunk chunkToSleep)
     {
         chunkToSleep.gameObject.SetActive(false);

@@ -9,6 +9,8 @@ public class TrackChunk : MonoBehaviour
 
     [Tooltip("Drag the ExitPoint child object here - at the end face of the track, +Z facing direction of travel")]
     public Transform exitPoint;
+
+    public Transform middlePoint;
     
     // Hidden because the TrackManager handles this automatically
     [HideInInspector] 
