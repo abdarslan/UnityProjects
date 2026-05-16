@@ -12,6 +12,7 @@ public class Controller : MonoBehaviour
     public float driftThresholdAngle = 10f;
     public float driftFactor = 0.5f;
     public int driftIntensity = 0;
+    public float maxSpeed = 100f;
 
     public static event Action OnPlayerDriftStart;
     public static event Action OnPlayerDriftEnd;
@@ -28,31 +29,32 @@ public class Controller : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
 
-        // try auto-assigning components from children if they weren't set in Inspector
         if (leftDriftTrail == null || rightDriftTrail == null)
         {
             var trails = GetComponentsInChildren<TrailRenderer>(true);
-            foreach (var t in trails)
+            foreach (var trail in trails)
             {
-                var n = t.gameObject.name.ToLower();
-                if (leftDriftTrail == null && n.Contains("left")) leftDriftTrail = t;
-                else if (rightDriftTrail == null && n.Contains("right")) rightDriftTrail = t;
+                string name = trail.gameObject.name.ToLower();
+                if (leftDriftTrail == null && name.Contains("left")) leftDriftTrail = trail;
+                else if (rightDriftTrail == null && name.Contains("right")) rightDriftTrail = trail;
             }
+
             if (leftDriftTrail == null && trails.Length > 0) leftDriftTrail = trails[0];
             if (rightDriftTrail == null && trails.Length > 1) rightDriftTrail = trails[1];
         }
 
         if (leftDriftParticles == null || rightDriftParticles == null)
         {
-            var parts = GetComponentsInChildren<ParticleSystem>(true);
-            foreach (var p in parts)
+            var particles = GetComponentsInChildren<ParticleSystem>(true);
+            foreach (var particle in particles)
             {
-                var n = p.gameObject.name.ToLower();
-                if (leftDriftParticles == null && n.Contains("left")) leftDriftParticles = p;
-                else if (rightDriftParticles == null && n.Contains("right")) rightDriftParticles = p;
+                string name = particle.gameObject.name.ToLower();
+                if (leftDriftParticles == null && name.Contains("left")) leftDriftParticles = particle;
+                else if (rightDriftParticles == null && name.Contains("right")) rightDriftParticles = particle;
             }
-            if (leftDriftParticles == null && parts.Length > 0) leftDriftParticles = parts[0];
-            if (rightDriftParticles == null && parts.Length > 1) rightDriftParticles = parts[1];
+
+            if (leftDriftParticles == null && particles.Length > 0) leftDriftParticles = particles[0];
+            if (rightDriftParticles == null && particles.Length > 1) rightDriftParticles = particles[1];
         }
     }
 
@@ -95,6 +97,12 @@ public class Controller : MonoBehaviour
         rb.AddRelativeForce(Vector3.forward * verticalInput * enginePower);
 
         float currentSpeed = rb.velocity.magnitude;
+        if (currentSpeed > maxSpeed)
+        {
+            rb.velocity = rb.velocity.normalized * maxSpeed;
+            currentSpeed = maxSpeed;
+        }
+
         Vector3 targetVelocity = transform.forward * currentSpeed;
         rb.velocity = Vector3.Lerp(rb.velocity, targetVelocity, grip * Time.fixedDeltaTime);
 
@@ -102,7 +110,7 @@ public class Controller : MonoBehaviour
         float angle = Vector3.Angle(transform.forward, rb.velocity);
         // angle times drift factor times the current speed of the car is the rate we are gonna broadcast to light manager and score manager to calculate the score and the intensity of the drift light effects
         // if the angle is greater than the drift threshold angle, we are in a drift state and brodcast the drift event to the listeners
-        if (angle > driftThresholdAngle && verticalInput > 0 && currentSpeed > 2) // we only want to start drifting if the player is pressing the gas pedal, otherwise we might get false positives when the player is just turning in place or reversing
+        if (angle > driftThresholdAngle && currentSpeed > 4) // we only want to start drifting if the player is pressing the gas pedal, otherwise we might get false positives when the player is just turning in place or reversing
         {
             if (!isDrifting)
             {
