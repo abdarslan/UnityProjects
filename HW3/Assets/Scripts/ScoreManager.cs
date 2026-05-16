@@ -64,6 +64,7 @@ public class ScoreManager : MonoBehaviour
     private void OnEnable() {
         Controller.OnPlayerDriftStart += HandlePlayerDriftStart;
         Controller.OnPlayerDriftEnd += HandlePlayerDriftEnd;
+        GameOverTrigger.OnPlayerOutOfBounds += HandleGameOver;
     }
     private void HandlePlayerDriftStart()
     {
@@ -75,8 +76,15 @@ public class ScoreManager : MonoBehaviour
         streakTimer = streakDuration; // reset the streak timer when a drift ends, so that the player has a chance to start another drift and keep the streak going
         isDrifting = false;
     }
+    private void HandleGameOver()
+    {
+        // reset all score related variables when the game is over
+        score += Mathf.RoundToInt(scoreChunk);
+        scoreChunk = 0f;
+    }
     private void OnDisable() {
         Controller.OnPlayerDriftStart -= HandlePlayerDriftStart;
         Controller.OnPlayerDriftEnd -= HandlePlayerDriftEnd;
+        GameOverTrigger.OnPlayerOutOfBounds -= HandleGameOver;
     }
 }

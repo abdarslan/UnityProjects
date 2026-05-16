@@ -12,9 +12,12 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI ActiveDriftText;
     public TextMeshProUGUI MultiplierText;
     public TextMeshProUGUI StreakTimerText;
-    public Image batteryBar;
+    public TextMeshProUGUI FinalScoreText;
+    public GameObject gameOverPanel;
+    public GameObject gamePlayPanel;
     public bool isDrifting = false;
     ScoreManager scoreManager;
+
     void Start()
     {
         instance = this;
@@ -23,6 +26,8 @@ public class UIManager : MonoBehaviour
         MultiplierText.text = "";
         StreakTimerText.text = "";
         scoreManager = FindObjectOfType<ScoreManager>();
+        gameOverPanel.SetActive(false);
+        gamePlayPanel.SetActive(true);
     }
 
     // Update is called once per frame
@@ -46,6 +51,7 @@ public class UIManager : MonoBehaviour
         ScoreManager.OnStreakChanged += HandleStreakChanged;
         Controller.OnPlayerDriftStart += HandlePlayerDriftStart;
         Controller.OnPlayerDriftEnd += HandlePlayerDriftEnd;
+        GameOverTrigger.OnPlayerOutOfBounds += HandleGameOver;
     }
     private void HandlePlayerDriftStart()
     {
@@ -60,9 +66,19 @@ public class UIManager : MonoBehaviour
     {
         MultiplierText.text = $"x{newStreak}";
     }
+    private void HandleGameOver()
+    {
+        FinalScoreText.text = $"Final Score: {scoreManager.score}";
+        ActiveDriftText.text = "GAME OVER (Press R to Restart)";
+        MultiplierText.text = "";
+        StreakTimerText.text = "";
+        gameOverPanel.SetActive(true);
+        gamePlayPanel.SetActive(false);
+    }
     private void OnDisable() {
         ScoreManager.OnStreakChanged -= HandleStreakChanged;
         Controller.OnPlayerDriftStart -= HandlePlayerDriftStart;
         Controller.OnPlayerDriftEnd -= HandlePlayerDriftEnd;
+        GameOverTrigger.OnPlayerOutOfBounds -= HandleGameOver;
     }
 }

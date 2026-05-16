@@ -69,7 +69,7 @@ public class TrackManager : MonoBehaviour
         // locate the main plane 0.1 units below the new chunks exit point
         if (mainPlane != null)
         {
-            mainPlane.position = lastExitPoint.position + new Vector3(0, 0.4f, 0);
+            mainPlane.position = lastExitPoint.position + new Vector3(0, 0.2f, 0);
         }
     }
     private void RecycleOldestChunk()
