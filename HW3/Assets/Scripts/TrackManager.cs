@@ -48,8 +48,8 @@ public class TrackManager : MonoBehaviour
         // Recycle oldest chunk when car has passed the second-to-last chunk's exit.
         // This keeps the chunk the car just left alive until it exits the next one.
         TrackChunk triggerChunk = activeChunks[activeChunks.Count - 2];
-        Vector3 exitToPlayer = player.position - triggerChunk.middlePoint.position;
-        float dot = Vector3.Dot(exitToPlayer, triggerChunk.middlePoint.forward);
+        Vector3 exitToPlayer = player.position - triggerChunk.exitPoint.position;
+        float dot = Vector3.Dot(exitToPlayer, triggerChunk.exitPoint.forward);
 
         if (dot >= 0f)
         {
@@ -65,9 +65,13 @@ public class TrackManager : MonoBehaviour
         TrackChunk newChunk = GetFromPool(prefab, lastExitPoint.position, lastExitPoint.rotation);
         activeChunks.Add(newChunk);
         lastExitPoint = newChunk.exitPoint;
-        mainPlane.position = lastExitPoint.position - mainPlane.up * 0.5f;
-    }
 
+        // locate the main plane 0.1 units below the new chunks exit point
+        if (mainPlane != null)
+        {
+            mainPlane.position = lastExitPoint.position + new Vector3(0, 0.4f, 0);
+        }
+    }
     private void RecycleOldestChunk()
     {
         TrackChunk chunkToRecycle = activeChunks[0];
