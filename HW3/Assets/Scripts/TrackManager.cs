@@ -10,6 +10,7 @@ public class TrackManager : MonoBehaviour
     [Header("Spawning Rules")]
     public Transform player;
     public int concurrentChunks = 3;
+    public float chunkDropPerSpawn = 0.01f;
 
     // Active list — index 0 is oldest, last index is newest
     private List<TrackChunk> activeChunks = new List<TrackChunk>();
@@ -17,8 +18,6 @@ public class TrackManager : MonoBehaviour
 
     // Pool bins keyed by prefab type
     private Dictionary<TrackChunk, Queue<TrackChunk>> poolDictionary = new Dictionary<TrackChunk, Queue<TrackChunk>>();
-    
-    public Transform mainPlane;
     void Start()
     {
         // Setup pool bins
@@ -47,7 +46,7 @@ public class TrackManager : MonoBehaviour
 
         // Recycle oldest chunk when car has passed the second-to-last chunk's exit.
         // This keeps the chunk the car just left alive until it exits the next one.
-        TrackChunk triggerChunk = activeChunks[activeChunks.Count - 2];
+        TrackChunk triggerChunk = activeChunks[activeChunks.Count - concurrentChunks + 1];
         Vector3 exitToPlayer = player.position - triggerChunk.exitPoint.position;
         float dot = Vector3.Dot(exitToPlayer, triggerChunk.exitPoint.forward);
 
@@ -62,15 +61,10 @@ public class TrackManager : MonoBehaviour
     {
         int randomIndex = Random.Range(0, randomChunks.Length);
         TrackChunk prefab = randomChunks[randomIndex];
-        TrackChunk newChunk = GetFromPool(prefab, lastExitPoint.position, lastExitPoint.rotation);
+        Vector3 nextEntryPosition = lastExitPoint.position + Vector3.down * chunkDropPerSpawn;
+        TrackChunk newChunk = GetFromPool(prefab, nextEntryPosition, lastExitPoint.rotation);
         activeChunks.Add(newChunk);
         lastExitPoint = newChunk.exitPoint;
-
-        // locate the main plane 0.1 units below the new chunks exit point
-        if (mainPlane != null)
-        {
-            mainPlane.position = lastExitPoint.position + new Vector3(0, 0.2f, 0);
-        }
     }
     private void RecycleOldestChunk()
     {

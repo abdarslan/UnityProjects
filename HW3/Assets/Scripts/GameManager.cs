@@ -38,8 +38,6 @@ public class GameManager : MonoBehaviour //singleton pattern for game manager, w
 
     private void HandleGameOver()
     {
-        // Handle game over logic here
-        Debug.Log("Game Over!");
         car.SetActive(false);
     }
 }
