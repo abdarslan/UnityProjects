@@ -110,7 +110,7 @@ public class Controller : MonoBehaviour
         float angle = Vector3.Angle(transform.forward, rb.velocity);
         // angle times drift factor times the current speed of the car is the rate we are gonna broadcast to light manager and score manager to calculate the score and the intensity of the drift light effects
         // if the angle is greater than the drift threshold angle, we are in a drift state and brodcast the drift event to the listeners
-        if (angle > driftThresholdAngle && currentSpeed > 4) // we only want to start drifting if the player is pressing the gas pedal, otherwise we might get false positives when the player is just turning in place or reversing
+        if (angle > driftThresholdAngle && currentSpeed > 4 && Vector3.Dot(rb.velocity, transform.forward) > 0) // exclude going backwards
         {
             if (!isDrifting)
             {

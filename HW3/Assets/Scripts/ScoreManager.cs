@@ -81,6 +81,7 @@ public class ScoreManager : MonoBehaviour
         // reset all score related variables when the game is over
         score += Mathf.RoundToInt(scoreChunk);
         scoreChunk = 0f;
+        SaveManager.Instance.AddNewScore(score);
     }
     private void OnDisable() {
         Controller.OnPlayerDriftStart -= HandlePlayerDriftStart;

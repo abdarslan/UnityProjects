@@ -13,10 +13,15 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI MultiplierText;
     public TextMeshProUGUI StreakTimerText;
     public TextMeshProUGUI FinalScoreText;
+
+    public GameObject gameStartPanel;
     public GameObject gameOverPanel;
     public GameObject gamePlayPanel;
+
     public bool isDrifting = false;
+    public bool isGameStarted = false;
     ScoreManager scoreManager;
+
 
     void Start()
     {
@@ -27,12 +32,22 @@ public class UIManager : MonoBehaviour
         StreakTimerText.text = "";
         scoreManager = FindObjectOfType<ScoreManager>();
         gameOverPanel.SetActive(false);
-        gamePlayPanel.SetActive(true);
+        gamePlayPanel.SetActive(false);
+        gameStartPanel.SetActive(true);
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (!isGameStarted)
+        {
+            if (Input.GetAxis("Vertical") > 0.1f) // start the game when the player presses the gas pedal
+            {
+                isGameStarted = true;
+                gameStartPanel.SetActive(false);
+                gamePlayPanel.SetActive(true);
+            }
+        }
         if (isDrifting)
         {
             ActiveDriftText.text = $"Drift: {Mathf.RoundToInt(scoreManager.scoreChunk)}";
@@ -74,6 +89,7 @@ public class UIManager : MonoBehaviour
         StreakTimerText.text = "";
         gameOverPanel.SetActive(true);
         gamePlayPanel.SetActive(false);
+        gameStartPanel.SetActive(false);
     }
     private void OnDisable() {
         ScoreManager.OnStreakChanged -= HandleStreakChanged;
